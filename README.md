@@ -14,7 +14,7 @@ Have a couple Kubernetes clusters and GitLab registry full of unused images. Cas
  * `KubeProdConfigPath=/app/prod.conf` - kubernetes config path. If you have more then 2 clusters or just 1 please edit string 85 start.py.
  * `MAX_CONNECTIONS=50` - parametr limits max simultaneous sessions for async framework.
  * `GITLAB_HOSTNAME=gitlab.my.ru` - hostname your gitlab.
- * `EXCLUDE_PROJECTS=project1,project2 ` - add projects that must be excluded from search or leave it blank.
+ * `EXCLUDE_PROJECTS=project1,project2 ` - add projects that must be excluded (projects with Job, CronJob or just store of valuable unused images) from search or leave it blank.
  * `ONLY_THIS_GROUP=https://gitlab.my.ru/dev` - if you need to clean only one group or leave it blank.
  * `KUBE_HISTORY=5` - how much images from rollout history you want to keep.
 
