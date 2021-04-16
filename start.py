@@ -47,17 +47,17 @@ def show_del_stat(del_image_base: list)->None:
     Minimal deletion statistics
     '''
     output={'stage':[],'prod':[],'other':[], 'forbidden':[]}
-    text= f'''
-    Prod tags deleted - {len(output['prod'])}
-    Stage tags deleted - {len(output['stage'])}
-    Other tegs deleted - {len(output['other'])}
-    Cant delete - {len(output['other'])}
-    '''
     for each in del_image_base:
         if '--=Cant delete=--' in each: output['forbidden'].append(each)
         elif 'prod' in each: output['prod'].append(each)
         elif 'stage' in each: output['stage'].append(each)
         else: output['other'].append(each)
+    text= f'''
+    Prod tags deleted - {len(output['prod'])}
+    Stage tags deleted - {len(output['stage'])}
+    Other tegs deleted - {len(output['other'])}
+    Cant delete - {len(output['forbidden'])}
+    '''
     logging.info(text)
 
 

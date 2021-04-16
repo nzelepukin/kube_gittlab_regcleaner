@@ -5,9 +5,10 @@ def get_images_from_namespace(namespace: str,output: dict)->dict:
     deploy_api = client.AppsV1Api()
     repl=deploy_api.list_namespaced_replica_set(namespace=namespace)
     for replica_set in repl.items:
+        namespace=replica_set.metadata.namespace
         if not 'app' in replica_set.metadata.labels:
-            app_name=replica_set.spec.template.spec.service_account
-        else: app_name=replica_set.metadata.labels['app']
+            app_name=f'{replica_set.spec.template.spec.service_account}-{namespace}'
+        else: app_name=f'{replica_set.metadata.labels["app"]}-{namespace}'
         if app_name not in output: output[app_name]=[]
         app_record=dict()
         if 'deployment.kubernetes.io/revision' in replica_set.metadata.annotations:
