@@ -62,7 +62,8 @@ async def browsing_get_tags(sem, url: str, headers: str, session: aiohttp.Client
             if request.status==200:
                 data = await request.read()
                 return {'url': url,'data': json.loads(data)}
-            else: logging.error(f'No tag {url}')
+            else: 
+                logging.error(f'Cant get tags from {url}')
 
 async def browsing_join_tags(url_base: list, headers: str, max_sessions: int)->list:
     ''' Control asinc getting pages '''

@@ -11,7 +11,7 @@ def parse_gitlab_tags(hostname: str, token: str, headers: dict, max_connections:
     return raw_data
 
 
-def parse_kube(filename: str, hisory_leghth: int)->list:
+def parse_kube(filename: str, hisory_leghth: int, group: str)->list:
     '''
     Get info from Kubernetes and transform to usable structure.
     '''
@@ -19,7 +19,7 @@ def parse_kube(filename: str, hisory_leghth: int)->list:
     image_base=list()
     for app in raw_data:
         image_buffer=list()
-        raw_data[app] = {int(i['revision']):i['containers'] for i in raw_data[app] }
+        raw_data[app] = {int(i['revision']):i['containers'] for i in raw_data[app] if i['containers'][0].startswith(group)}
         for revision in sorted(raw_data[app].keys())[::-1]:
             if len(image_buffer)<(hisory_leghth+1):
                 if raw_data[app][revision] not in image_buffer: image_buffer.append(raw_data[app][revision])
@@ -77,6 +77,8 @@ max_connections=int(os.environ['MAX_CONNECTIONS'])
 exclude_projects=[each.strip().lower() for each in os.environ['EXCLUDE_PROJECTS'].split(',')]
 only_this_group=os.environ['ONLY_THIS_GROUP']
 kube_history=int(os.environ['KUBE_HISTORY'])
+port=int(os.environ['REGISTRY_PORT'])
+remove_unused_tags=os.getenv("REMOVE_UNUSED_TAGS", 'False').lower() in ('true', '1', 't')
 ###
 
 logging.basicConfig(level=logging.INFO,
@@ -88,13 +90,14 @@ logging.info(f'Working with {gitlab_hostname}')
 gitlab_image_base=parse_gitlab_tags(gitlab_hostname,GIT_TOKEN,headers,max_connections,exclude_projects,only_this_group )
 logging.info(f'Successfully finish with {gitlab_hostname}')
 for cluster in clusters:
-    kube_image_base+=parse_kube(cluster,kube_history)
+    kube_image_base+=parse_kube(cluster,kube_history,group=f'{gitlab_hostname}:{port}/'+'/'.join(only_this_group.split('/')[3:]))
 kube_image_base=set(kube_image_base)
 show_stat(kube_image_base,set(gitlab_image_base.keys()),kube_history)
 del_candidates=list()
 for tag in set(gitlab_image_base.keys()).difference(kube_image_base):
     del_candidates.append(gitlab_image_base[tag])
 logging.info(f'Got {len(del_candidates)} candidates to delete')
-del_output=del_registry_tags(del_candidates,headers,max_connections)
-show_del_stat(del_output)
+if remove_unused_tags:
+    del_output=del_registry_tags(del_candidates,headers,max_connections)
+    show_del_stat(del_output)
 timer.stop()
