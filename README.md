@@ -2,6 +2,13 @@
 ### Decription
 Have a couple Kubernetes clusters and GitLab registry full of unused images. Case is delete unused images from GitLab and keep images used by apps in Kubernetes.
 
+### Resources
+ * `CPU_REQUEST = 0.05`
+ * `RAM_REQUEST = 64` Mb
+ * `CPU_LIMIT = 0.5`
+ * `RAM_LIMIT = 128` Mb
+
+
 ### Local Run
  * `python3.9 start.py`
  
