@@ -34,7 +34,7 @@ def show_stat(kube_image_base: set,gitlab_image_base: set, kube_history: int)->N
     Image sorting statistics.
     '''
     text= f'''
-    GitLab registry tags - {len(gitlab_image_base)}
+    GitLab registry images - {len(gitlab_image_base)}
     Images from kubernetes replicaset rollout history({kube_history} last images) - {len(kube_image_base)}
     Images from kubernetes, found in GitLab - {len(kube_image_base.intersection(gitlab_image_base))}
     Images from kubernetes, not found in GitLab - {len(kube_image_base.difference(gitlab_image_base))}
@@ -77,10 +77,8 @@ max_connections=int(os.environ['MAX_CONNECTIONS'])
 exclude_projects=[each.strip().lower() for each in os.environ['EXCLUDE_PROJECTS'].split(',')]
 only_this_group=os.environ['ONLY_THIS_GROUP']
 kube_history=int(os.environ['KUBE_HISTORY'])
-port=int(os.environ['REGISTRY_PORT'])
 remove_unused_tags=os.getenv("REMOVE_UNUSED_TAGS", 'False').lower() in ('true', '1', 't')
 ###
-
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 headers= {"PRIVATE-TOKEN":GIT_TOKEN}
@@ -88,9 +86,11 @@ clusters=[os.environ['KubeStageConfigPath'],os.environ['KubeProdConfigPath']]
 kube_image_base=list()
 logging.info(f'Working with {gitlab_hostname}')
 gitlab_image_base=parse_gitlab_tags(gitlab_hostname,GIT_TOKEN,headers,max_connections,exclude_projects,only_this_group )
+gitlab_registry_url = [each for each in gitlab_image_base.keys()][0]
+only_this_group=gitlab_registry_url[:gitlab_registry_url.find('/')]+'/'+'/'.join(only_this_group.split('/')[3:])
 logging.info(f'Successfully finish with {gitlab_hostname}')
 for cluster in clusters:
-    kube_image_base+=parse_kube(cluster,kube_history,group=f'{gitlab_hostname}:{port}/'+'/'.join(only_this_group.split('/')[3:]))
+    kube_image_base+=parse_kube(cluster,kube_history,group=only_this_group)
 kube_image_base=set(kube_image_base)
 show_stat(kube_image_base,set(gitlab_image_base.keys()),kube_history)
 del_candidates=list()
