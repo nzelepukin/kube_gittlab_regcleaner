@@ -21,7 +21,7 @@ def parse_kube(filename: str, hisory_leghth: int, group: str)->list:
         image_buffer=list()
         raw_data[app] = {int(i['revision']):i['containers'] for i in raw_data[app] if i['containers'][0].startswith(group)}
         for revision in sorted(raw_data[app].keys())[::-1]:
-            if len(image_buffer)<(hisory_leghth+1):
+            if len(image_buffer)<hisory_leghth:
                 if raw_data[app][revision] not in image_buffer: image_buffer.append(raw_data[app][revision])
             else: 
                 break
