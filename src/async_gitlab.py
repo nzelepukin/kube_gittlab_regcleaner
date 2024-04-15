@@ -105,14 +105,14 @@ async def browsing_join_del_tags(url_base: list, headers: str, max_sessions: int
 ### Конец блока асинхронного удаления
 
 
-def get_gitlab_projects(hostname: str, token: str, headers: dict)->list:
+def get_gitlab_projects(gitlab_protocol: str, hostname: str, token: str, headers: dict)->list:
     '''
     Функция собирает информацию о всех проектах находящихся на GitLab сервере
     Для работы нужен API токен c правами на api и read_repository
     '''
     projects=list()
     params={"per_page": 20}
-    url=f"http://{hostname}/api/v4/projects"
+    url=f"{gitlab_protocol}://{hostname}/api/v4/projects"
     response = requests.get(url, headers=headers, params=params)
     try:
         total_items=int(response.headers['X-Total'])
@@ -129,12 +129,12 @@ def get_gitlab_projects(hostname: str, token: str, headers: dict)->list:
     return projects
 
 
-def get_registry(hostname: str, token:str, headers:dict, max_connections: int, exclude_projects=[''], only_this_group='')->list:
+def get_registry(gitlab_protocol: str, hostname: str, token:str, headers:dict, max_connections: int, exclude_projects=[''], only_this_group='')->list:
     '''
     Функция собирает теги в репозиториях registry и возвращает список тегов(dict) 
     в том виде в каком отдает gitlab с парой кастомным полем - URL для удаления
     '''
-    projects = get_gitlab_projects(hostname,token, headers) # Берем список проектов
+    projects = get_gitlab_projects(gitlab_protocol,hostname,token, headers) # Берем список проектов
     if only_this_group!='': 
         projects = [project for project in projects if only_this_group in project['web_url'].lower()]
     if exclude_projects!=['']: 
@@ -142,14 +142,14 @@ def get_registry(hostname: str, token:str, headers:dict, max_connections: int, e
     registry=list()
     registry_urls=list()
     repos=list()
-    repo_urls = [f"https://{hostname}/api/v4/projects/{project['id']}/registry/repositories" for project in projects] 
+    repo_urls = [f"{gitlab_protocol}://{hostname}/api/v4/projects/{project['id']}/registry/repositories" for project in projects] 
     response = asyncio.run(browsing_join(repo_urls, headers, max_connections))
     for each in response:
         tmp = json.loads(each)
         if tmp != []:
             repos += tmp
     for repo in repos:
-        repo['url']= f"https://{hostname}/api/v4/projects/{repo['project_id']}/registry/repositories/{repo['id']}/tags"
+        repo['url']= f"{gitlab_protocol}://{hostname}/api/v4/projects/{repo['project_id']}/registry/repositories/{repo['id']}/tags"
     repos= asyncio.run(browsing_header(repos, headers, max_connections))
     for repo in repos:
         if repo['total'] % 100 > 0: total_pages=repo['total'] // 100 + 1

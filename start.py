@@ -2,11 +2,11 @@ import json, os, time, logging
 from src.async_gitlab import get_registry, del_registry_tags
 from src.kube import get_images_from_cluster
 
-def parse_gitlab_tags(hostname: str, token: str, headers: dict, max_connections: int, exclude_projects: list, only_this_group: str)->dict:
+def parse_gitlab_tags(gitlab_protocol: str, hostname: str, token: str, headers: dict, max_connections: int, exclude_projects: list, only_this_group: str)->dict:
     '''
     Get info from GitLab and transform to usable structure.
     '''
-    raw_data=get_registry(hostname, token, headers, max_connections, only_this_group=only_this_group,exclude_projects=exclude_projects)
+    raw_data=get_registry(gitlab_protocol, hostname, token, headers, max_connections, only_this_group=only_this_group,exclude_projects=exclude_projects)
     raw_data = {image['location']:image['del_url'] for image in raw_data}
     return raw_data
 
@@ -61,9 +61,9 @@ def show_del_stat(del_image_base: list)->None:
       text= f'''
       Prod tags deleted - {len(output['prod'])}
       Stage tags deleted - {len(output['stage'])}
-      Other tegs deleted - {len(output['other'])}
+      Other tags deleted - {len(output['other'])}
       Cant delete - {len(output['forbidden'])}
-    '''
+      '''
     logging.info(text)
 
 
@@ -78,6 +78,7 @@ timer=Timer()
 
 ### Environment variables
 GIT_TOKEN=os.environ['GIT_TOKEN'] 
+gitlab_protocol=os.environ['GITLAB_PROTO']
 gitlab_hostname=os.environ['GITLAB_HOSTNAME']
 max_connections=int(os.environ['MAX_CONNECTIONS'])
 exclude_projects=[each.strip().lower() for each in os.environ['EXCLUDE_PROJECTS'].split(',')]
@@ -94,7 +95,7 @@ else:
   clusters=[os.environ['KubeStageConfigPath'],os.environ['KubeProdConfigPath']]
 kube_image_base=list()
 logging.info(f'Working with {gitlab_hostname}')
-gitlab_image_base=parse_gitlab_tags(gitlab_hostname,GIT_TOKEN,headers,max_connections,exclude_projects,only_this_group )
+gitlab_image_base=parse_gitlab_tags(gitlab_protocol,gitlab_hostname,GIT_TOKEN,headers,max_connections,exclude_projects,only_this_group)
 gitlab_registry_url = [each for each in gitlab_image_base.keys()][0]
 only_this_group=gitlab_registry_url[:gitlab_registry_url.find('/')]+'/'+'/'.join(only_this_group.split('/')[3:])
 logging.info(f'Successfully finish with {gitlab_hostname}')
