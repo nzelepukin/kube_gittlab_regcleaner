@@ -1,0 +1,11 @@
+.git
+.gitignore
+.dockerignore
+Dockerfile
+/**/.DS_Store
+/**/.env
+/**/.env.*
+/**/*.log
+result.yaml
+tmp_*
+conf

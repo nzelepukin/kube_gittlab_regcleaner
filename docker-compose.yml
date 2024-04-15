@@ -1,0 +1,23 @@
+# Uncomment the line if you have a docker-engine version lower than 25.0.5
+#version: '3'
+
+services:
+  kube-gitlab-regcleaner:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: kube-gitlab-regcleaner
+    hostname: kube-gitlab-regcleaner
+    restart: no
+    environment:
+      - GIT_TOKEN
+      - GITLAB_PROTO
+      - GITLAB_HOSTNAME
+      - EXCLUDE_PROJECTS
+      - ONLY_THIS_GROUP
+      - MAX_CONNECTIONS
+      - KubeConfigPath
+      - KUBE_HISTORY
+      - REMOVE_UNUSED_TAGS
+    volumes:
+      - ./conf/kube-config.conf:/app/kube-config.conf
