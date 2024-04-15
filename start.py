@@ -52,11 +52,17 @@ def show_del_stat(del_image_base: list)->None:
         elif 'prod' in each: output['prod'].append(each)
         elif 'stage' in each: output['stage'].append(each)
         else: output['other'].append(each)
-    text= f'''
-    Prod tags deleted - {len(output['prod'])}
-    Stage tags deleted - {len(output['stage'])}
-    Other tegs deleted - {len(output['other'])}
-    Cant delete - {len(output['forbidden'])}
+    if os.environ['KubeConfigPath']:
+      text= f'''
+      Image tags deleted from registry - {len(output['other'])}
+      Cant delete - {len(output['forbidden'])}
+      '''
+    else:
+      text= f'''
+      Prod tags deleted - {len(output['prod'])}
+      Stage tags deleted - {len(output['stage'])}
+      Other tegs deleted - {len(output['other'])}
+      Cant delete - {len(output['forbidden'])}
     '''
     logging.info(text)
 
@@ -82,7 +88,10 @@ remove_unused_tags=os.getenv("REMOVE_UNUSED_TAGS", 'False').lower() in ('true', 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 headers= {"PRIVATE-TOKEN":GIT_TOKEN}
-clusters=[os.environ['KubeStageConfigPath'],os.environ['KubeProdConfigPath']]            
+if os.environ['KubeConfigPath']:
+  clusters=[os.environ['KubeConfigPath']]
+else:
+  clusters=[os.environ['KubeStageConfigPath'],os.environ['KubeProdConfigPath']]
 kube_image_base=list()
 logging.info(f'Working with {gitlab_hostname}')
 gitlab_image_base=parse_gitlab_tags(gitlab_hostname,GIT_TOKEN,headers,max_connections,exclude_projects,only_this_group )
