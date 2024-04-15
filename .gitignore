@@ -1,3 +1,4 @@
+.env
 result.yaml
 tmp_*
 __pycache__
