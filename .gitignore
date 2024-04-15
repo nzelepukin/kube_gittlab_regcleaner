@@ -2,3 +2,4 @@
 result.yaml
 tmp_*
 __pycache__
+conf/*.conf

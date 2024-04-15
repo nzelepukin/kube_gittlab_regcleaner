@@ -12,7 +12,13 @@ Have a couple Kubernetes clusters and GitLab registry full of unused images. Cas
  * `python3.9 start.py`
  
 ### Build
-  * `docker build -t gitlab-regcleaner .`
+  * ```
+    docker build -t gitlab-regcleaner .
+    ```
+    or
+  * ```
+    docker-compose up --build
+    ```
  
 ### Environment variables
  * `GIT_TOKEN=asdasdasd` - GitLab token (api,read_repository, read_registry)
